@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hypergram</title>
+    <style>
+        .center {
+            margin: auto;
+            padding: 10px;
+            text-align: center;
+        }
+        .slider {
+            width: 100%;
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+<div class="center" style="display: flex; width:90%; border: 2px black solid; padding: 1%">
+    <div id="canvas-container" style="flex-grow: 3; margin-right: 1%">
+        <canvas id="canvas"></canvas>
+    </div>
+    <div class="center" style="background-color: aquamarine; flex-grow: 1; margin-left: 1%; height: 100%">
+        <div class="center" style="text-align-last: center">
+            <input type="file" id="file-input" accept="image/*">
+        </div>
+
+        <div class="center">
+            <label for="brightness">Brightness</label>
+            <input class="slider" type="range" id="brightness">
+        </div>
+
+        <div class="center">
+            <label for="contrast">Contrast</label>
+            <input class="slider" type="range" id="contrast">
+        </div>
+
+        <div class="center">
+            <label for="transparent">Transparent</label>
+            <input class="slider" type="range" id="transparent">
+        </div>
+
+        <div class="center">
+            <button type="button" id="save-button">Save Image</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let fileInput = document.getElementById("file-input");
+    fileInput.addEventListener('change', function(e) {
+       if (e.target.files) {
+           let file = e.target.files[0];
+
+           let reader = new FileReader();
+           reader.readAsDataURL(file);
+
+           reader.onloadend = function (e) {
+               let image = new Image();
+               image.src = e.target.result;
+               image.onload = function(e) {
+                   let canvas = document.getElementById('canvas');
+                   let canvasContainer = document.getElementById('canvas-container');
+                   let ctx = canvas.getContext('2d');
+
+                   // for scale to fit, commented out because Hyperskill wants 1:1 scale
+                   // canvas.width = canvasContainer.clientWidth;
+                   // canvas.height = canvasContainer.clientHeight;
+                   // let scale = Math.min(
+                   //     canvas.width / image.width,
+                   //     canvas.height / image.height
+                   // );
+                   //
+                   // let x = (canvas.width / 2) - (image.width / 2) * scale;
+                   // let y = (canvas.height / 2) - (image.height / 2) * scale;
+                   // ctx.drawImage(image, x, y, image.width * scale, image.height * scale);
+
+                   canvas.width = image.width;
+                   canvas.height = image.height;
+                   ctx.drawImage(image, 0, 0);
+               }
+           }
+       }
+    });
+</script>
+</body>
+</html>
