@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hypergram</title>
+    <style>
+        .center {
+            margin: auto;
+            padding: 10px;
+            text-align: center;
+        }
+        .slider {
+            width: 100%;
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+<div class="center" style="display: flex; width:90%; border: 2px black solid; padding: 1%">
+    <div id="canvas-container" style="flex-grow: 3; margin-right: 1%">
+        <canvas id="canvas"></canvas>
+    </div>
+    <div class="center" style="background-color: aquamarine; flex-grow: 1; margin-left: 1%; height: 100%">
+        <div class="center" style="text-align-last: center">
+            <input type="file" id="file-input" accept="image/*">
+        </div>
+
+        <div class="center">
+            <label for="brightness">Brightness</label>
+            <input class="slider" type="range" id="brightness" min="-255" max="255" step="1">
+        </div>
+
+        <div class="center">
+            <label for="contrast">Contrast</label>
+            <input class="slider" type="range" id="contrast" min="-128" max="128" step="1">
+        </div>
+
+        <div class="center">
+            <label for="transparent">Transparent</label>
+            <input class="slider" type="range" id="transparent" min="0" max="1" value="1" step="0.1">
+        </div>
+
+        <div class="center">
+            <button type="button" id="save-button">Save Image</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let fileInput = document.getElementById("file-input");
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files) {
+            let file = e.target.files[0];
+
+            let reader = new FileReader();
+            reader.readAsDataURL(file);
+
+            reader.onloadend = function (e) {
+                let image = new Image();
+                image.src = e.target.result;
+                image.onload = function(e) {
+                    let canvas = document.getElementById('canvas');
+                    let ctx = canvas.getContext('2d');
+
+                    // for scale to fit, commented out because Hyperskill wants 1:1 scale
+                    // let canvasContainer = document.getElementById('canvas-container');
+                    // canvas.width = canvasContainer.clientWidth;
+                    // canvas.height = canvasContainer.clientHeight;
+                    // let scale = Math.min(
+                    //     canvas.width / image.width,
+                    //     canvas.height / image.height
+                    // );
+                    //
+                    // let x = (canvas.width / 2) - (image.width / 2) * scale;
+                    // let y = (canvas.height / 2) - (image.height / 2) * scale;
+                    // ctx.drawImage(image, x, y, image.width * scale, image.height * scale);
+
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+                    ctx.drawImage(image, 0, 0);
+
+                    originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                }
+            }
+        }
+    });
+
+
+    function noUploadedImage() {
+        return originalImageData === undefined;
+    }
+
+    function truncate(value, maxValue, minValue) {
+        if (value > maxValue) {
+            return maxValue;
+        } else if (value < minValue) {
+            return minValue;
+        }
+        return value;
+    }
+
+    function changeRGBValues(canvas, brightness, contrast, alpha) {
+        let context = canvas.getContext('2d');
+        let imageData = new ImageData(
+            new Uint8ClampedArray(originalImageData.data),
+            originalImageData.width,
+            originalImageData.height
+        );
+        let pixels = imageData.data;
+
+        console.log(brightness, contrast, alpha);
+
+        let maxValue = 255;
+        let minValue = -255;
+        let factor = 259*(255+contrast)/(255*(259-contrast));
+        for (let i = 0; i < pixels.length; i = i+4) {
+            // change contrast
+            let red = factor * (pixels[i]-128) + 128;
+            let green = factor * (pixels[i+1]-128) + 128;
+            let blue = factor * (pixels[i+2]-128) + 128;
+
+            // change brightness
+            pixels[i] = truncate(red + brightness, maxValue, minValue);
+            pixels[i+1] = truncate(green + brightness, maxValue, minValue);
+            pixels[i+2] = truncate(blue + brightness, maxValue, minValue);
+
+            // change transparency
+            pixels[i+3] = pixels[i+3] * alpha;
+        }
+        context.putImageData(imageData, 0, 0);
+    }
+
+
+    let brightnessInput = document.getElementById('brightness');
+    let contrastInput = document.getElementById('contrast');
+    let transparentInput = document.getElementById('transparent');
+    let originalImageData;
+
+    function sliderChange() {
+        if (!noUploadedImage()) {
+            let canvas = document.getElementById('canvas');
+            let brightness = parseInt(brightnessInput.value);
+            let contrast = parseInt(contrastInput.value);
+            let alpha = parseFloat(transparentInput.value);
+
+            changeRGBValues(canvas, brightness, contrast, alpha);
+        }
+    }
+
+    brightnessInput.addEventListener('change', sliderChange);
+    contrastInput.addEventListener('change', sliderChange);
+    transparentInput.addEventListener('change', sliderChange);
+
+    let saveButton = document.getElementById('save-button');
+    saveButton.addEventListener('click', function() {
+       if (!noUploadedImage()) {
+           let canvas = document.getElementById('canvas');
+           let image = canvas.toDataURL('image/png');
+
+           let downloader = document.createElement('a');
+           downloader.download = 'result.png';
+           downloader.href = image;
+           downloader.click();
+       }
+    });
+</script>
+</body>
+</html>
