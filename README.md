@@ -6,6 +6,8 @@ Link to the project [Hypergram](https://hyperskill.org/projects/199).
 Link to all of [my Hyperskill projects](https://github.com/ana117/hyperskilll-projects).
 
 ## Demo
+![Hypergram](https://user-images.githubusercontent.com/63540951/176397370-a092cd2d-6ba2-4d6e-b04e-1336eb7667b6.gif)
+
 
 ## Stages
 **Stage 1/4: First steps**\
